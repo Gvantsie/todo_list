@@ -16,7 +16,14 @@ class MainWindow(QMainWindow):
     def add_task(self): #ფუნქცია, რომელიც ამატებს ახალ დავალებას
         task = self.lineEdit.text()
         if task:
-            self.listWidget.addItem(task)
+            category = "numbers" if task.isdigit() else "strings" # შევამოწმოთ არის თუ არა შეტანილი ტექსტი ციფრი
+            # ეს არის იგივე ჩანაწერი რაც ზემოთ
+            # if task.isdigit():
+            #     category == "numbers"
+            # else:
+            #     category == "strings"
+
+            self.listWidget.addItem(f"{category}: {task}")
             self.lineEdit.clear()
             self.save_tasks()
 
@@ -31,14 +38,19 @@ class MainWindow(QMainWindow):
         try:
             with open("tasks.json", "r") as file:
                 tasks = json.load(file)
-                for task in tasks:
-                    self.listWidget.addItem(task)
+                for category, tasks in tasks.items():
+                    for task in tasks:
+                        self.listWidget.addItem(f"{category}: {task}")
         except FileNotFoundError:
             pass
 
     def save_tasks(self): #ფუნქცია, რომელიც შეინახავს დავალებებს ფაილში
-        tasks = [self.listWidget.item(i).text() for i in range(self.listWidget.count())]
-        # tasks = ["cotne", "taso", 'sandro']
+        tasks = {"numbers": [], "strings": []}
+        for i in range(self.listWidget.count()):
+            task = self.listWidget.item(i).text()
+            category, task = task.split(": ")
+            tasks[category].append(task)
+
         with open("tasks.json", "w") as file:
             json.dump(tasks, file)
 
@@ -46,5 +58,6 @@ class MainWindow(QMainWindow):
 app = QApplication(sys.argv)
 window = MainWindow()
 window.setWindowTitle("To-Do List")
+window.setFixedSize(800, 600)
 window.show()
 sys.exit(app.exec_())
